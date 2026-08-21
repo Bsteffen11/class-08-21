@@ -1,0 +1,118 @@
+---
+title: "Sarasota Weather"
+subtitle: "The last seven complete days in Sarasota, Florida"
+author: ""
+format:
+  html:
+    toc: false
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(lubridate)
+
+weather <- read_csv("data/sarasota-weather.csv", show_col_types = FALSE) |>
+  mutate(
+    date = as.Date(date),
+    day = format(date, "%a %b %-d"),
+    weather = factor(weather)
+  )
+
+period_start <- min(weather$date)
+period_end <- max(weather$date)
+
+summary_stats <- weather |>
+  summarise(
+    high = max(temperature_f),
+    low = min(temperature_f),
+    rain = sum(precipitation_in),
+    windy = max(wind_mph)
+  )
+```
+
+## A week in Sarasota
+
+`r format(period_start, "%B %-d")` to `r format(period_end, "%B %-d, %Y")`  
+Hourly observations from Open-Meteo, shown in local time.
+
+```{r}
+#| label: weather-plot
+#| fig-width: 11
+#| fig-height: 7
+#| fig-cap: "Hourly temperature, humidity, rainfall, and wind speed."
+
+plot_data <- weather |>
+  mutate(
+    rainfall = if_else(precipitation_in > 0, precipitation_in, NA_real_),
+    wind_label = if_else(wind_mph >= 15, sprintf("%.0f mph", wind_mph), NA_character_)
+  )
+
+ggplot(plot_data, aes(x = time)) +
+  geom_col(aes(y = precipitation_in * 70), fill = "#79c7d3", alpha = 0.55, width = 0.035) +
+  geom_ribbon(aes(ymin = temperature_f - 2, ymax = temperature_f + 2),
+              fill = "#f3a261", alpha = 0.16) +
+  geom_line(aes(y = temperature_f, color = "Temperature"), linewidth = 1.1) +
+  geom_line(aes(y = humidity_percent, color = "Humidity"), linewidth = 0.8, alpha = 0.8) +
+  geom_point(data = filter(plot_data, wind_mph >= 15),
+             aes(y = temperature_f, size = wind_mph), color = "#264653", alpha = 0.75) +
+  scale_color_manual(values = c("Temperature" = "#e76f51", "Humidity" = "#277da1")) +
+  scale_size_continuous(range = c(2, 5), guide = "none") +
+  scale_y_continuous(
+    name = "Temperature (F) / relative humidity (%)",
+    limits = c(0, 100),
+    sec.axis = sec_axis(~ . / 70, name = "Precipitation (inches)")
+  ) +
+  scale_x_datetime(date_breaks = "1 day", date_labels = "%a\n%b %-d", expand = expansion(mult = c(0.01, 0.02))) +
+  labs(color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#fffaf3", color = NA),
+    panel.background = element_rect(fill = "#fffaf3", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.title = element_text(color = "#264653", face = "bold"),
+    axis.text = element_text(color = "#4a5759"),
+    legend.position = "top",
+    legend.text = element_text(color = "#264653", face = "bold"),
+    plot.caption = element_text(color = "#6b7280")
+  )
+```
+
+::: {.callout-note}
+**At a glance:** the week ranged from `r round(summary_stats$low)` F to `r round(summary_stats$high)` F, with `r round(summary_stats$rain, 2)` inches of rain. The strongest hourly wind was `r round(summary_stats$windy)` mph.
+:::
+
+## Weather conditions
+
+```{r}
+#| label: conditions
+#| fig-width: 11
+#| fig-height: 3.5
+
+weather |>
+  count(date, weather) |>
+  ggplot(aes(x = date, y = n, fill = weather)) +
+  geom_col(width = 0.75, show.legend = FALSE) +
+  geom_text(aes(label = weather), position = position_stack(vjust = 0.5),
+            size = 3, color = "#173042", fontface = "bold") +
+  scale_x_date(date_breaks = "1 day", date_labels = "%a\n%b %-d") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = NULL, y = "Hourly observations") +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.title = element_text(color = "#264653", face = "bold"),
+    axis.text = element_text(color = "#4a5759")
+  )
+```
+
+_Data source: [Open-Meteo](https://open-meteo.com/), queried by `plot.R`._
