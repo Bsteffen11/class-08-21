@@ -1,0 +1,15 @@
+# Quarto
+.quarto/
+*_files/
+analysis_cache/
+
+# R
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/

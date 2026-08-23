@@ -1,0 +1,29 @@
+---
+title: "PGA Tour Putting Stats"
+format: html
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+
+# Sample dataset of PGA Tour golfers and putts per round
+pga_data <- tibble(
+  golfer = c("Taylor Montgomery", "Maverick McNealy", "Harry Hall", 
+             "Sam Burns", "Denny McCarthy", "Tour Average", "Field Bottom 10%"),
+  putts_per_round = c(27.3, 27.5, 27.6, 27.8, 27.8, 28.9, 30.2),
+  group = c(rep("Top 10%", 5), "Average", "Bottom 10%")
+)
+
+# Create a bar plot using ggplot2
+ggplot(pga_data, aes(x = reorder(golfer, putts_per_round), y = putts_per_round, fill = group)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average Putts Per Round on the PGA Tour",
+    x = NULL,
+    y = "Putts Per Round",
+    fill = "Category"
+  ) +
+  theme_minimal()
+```

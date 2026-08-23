@@ -1,0 +1,47 @@
+---
+title: "Exploring Storms and Flights"
+author: "Antigravity"
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(nycflights13)
+```
+
+```{r}
+#| label: storms-plot
+#| cache: true
+
+storms |> 
+  distinct(year, name) |> 
+  count(year) |> 
+  ggplot(aes(x = year, y = n)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Number of Named Storms per Year",
+    subtitle = "Data from the dplyr storms dataset",
+    x = "Year",
+    y = "Number of Named Storms"
+  )
+```
+
+```{r}
+#| label: flights
+
+flights
+```
+
+```{r}
+#| label: flights-plot
+
+flights |> 
+  ggplot(aes(x = dep_delay, y = arr_delay, color = carrier)) +
+  geom_point()
+```

@@ -12,6 +12,88 @@ execute:
   message: false
 ---
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+  --ink: #16324f;
+  --mist: #eef5f6;
+  --rain: #6da7bc;
+}
+
+body {
+  background: #eef5f6;
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.hero {
+  position: relative;
+  min-height: 380px;
+  margin: -1rem -1rem 2.5rem;
+  padding: 3rem clamp(1.25rem, 6vw, 6rem);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background-position: center 58%;
+  background-size: cover;
+  box-shadow: 0 18px 45px rgba(22, 50, 79, 0.18);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 39, 63, 0.08), rgba(10, 30, 48, 0.82));
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+  background-image: repeating-linear-gradient(105deg, transparent 0 18px, rgba(216, 239, 243, 0.42) 19px, transparent 20px 46px);
+  background-size: 100% 44px;
+  transform: skewX(-8deg);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  color: white;
+}
+
+.hero-copy h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.hero-copy p {
+  margin: 1rem 0 0;
+  color: #d9eef0;
+  font-size: 1.05rem;
+}
+
+.callout {
+  border: 0;
+  border-left: 4px solid #e76f51;
+  border-radius: 0;
+  background: white;
+  box-shadow: 0 8px 24px rgba(22, 50, 79, 0.08);
+}
+
+@media (max-width: 600px) {
+  .hero { min-height: 320px; margin-inline: -0.5rem; }
+}
+</style>
+
 ```{r}
 #| label: setup
 #| include: false
@@ -38,10 +120,12 @@ summary_stats <- weather |>
   )
 ```
 
-## A week in Sarasota
-
-`r format(period_start, "%B %-d")` to `r format(period_end, "%B %-d, %Y")`  
-Hourly observations from Open-Meteo, shown in local time.
+<div class="hero" style="background-image: url('assets/sarasota-skyline.jpeg');">
+  <div class="hero-copy">
+    <h1>Sarasota, in the rain</h1>
+    <p>Hourly weather from `r format(period_start, "%B %-d")` to `r format(period_end, "%B %-d, %Y")` · local time</p>
+  </div>
+</div>
 
 ```{r}
 #| label: weather-plot
@@ -51,20 +135,16 @@ Hourly observations from Open-Meteo, shown in local time.
 
 plot_data <- weather |>
   mutate(
-    rainfall = if_else(precipitation_in > 0, precipitation_in, NA_real_),
-    wind_label = if_else(wind_mph >= 15, sprintf("%.0f mph", wind_mph), NA_character_)
+    rainfall = if_else(precipitation_in > 0, precipitation_in, NA_real_)
   )
 
 ggplot(plot_data, aes(x = time)) +
-  geom_col(aes(y = precipitation_in * 70), fill = "#79c7d3", alpha = 0.55, width = 0.035) +
-  geom_ribbon(aes(ymin = temperature_f - 2, ymax = temperature_f + 2),
-              fill = "#f3a261", alpha = 0.16) +
-  geom_line(aes(y = temperature_f, color = "Temperature"), linewidth = 1.1) +
-  geom_line(aes(y = humidity_percent, color = "Humidity"), linewidth = 0.8, alpha = 0.8) +
-  geom_point(data = filter(plot_data, wind_mph >= 15),
-             aes(y = temperature_f, size = wind_mph), color = "#264653", alpha = 0.75) +
+  geom_col(aes(y = precipitation_in * 70), fill = "#6da7bc", alpha = 0.45, width = 0.03) +
+  geom_ribbon(aes(ymin = temperature_f - 1.5, ymax = temperature_f + 1.5),
+              fill = "#f4a261", alpha = 0.18) +
+  geom_line(aes(y = temperature_f, color = "Temperature"), linewidth = 1.15) +
+  geom_line(aes(y = humidity_percent, color = "Humidity"), linewidth = 0.75, alpha = 0.72) +
   scale_color_manual(values = c("Temperature" = "#e76f51", "Humidity" = "#277da1")) +
-  scale_size_continuous(range = c(2, 5), guide = "none") +
   scale_y_continuous(
     name = "Temperature (F) / relative humidity (%)",
     limits = c(0, 100),
@@ -74,15 +154,15 @@ ggplot(plot_data, aes(x = time)) +
   labs(color = NULL) +
   theme_minimal(base_size = 12) +
   theme(
-    plot.background = element_rect(fill = "#fffaf3", color = NA),
-    panel.background = element_rect(fill = "#fffaf3", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
     panel.grid.minor = element_blank(),
     panel.grid.major.x = element_blank(),
-    axis.title = element_text(color = "#264653", face = "bold"),
+    axis.title = element_text(color = "#16324f", face = "bold"),
     axis.text = element_text(color = "#4a5759"),
     legend.position = "top",
-    legend.text = element_text(color = "#264653", face = "bold"),
-    plot.caption = element_text(color = "#6b7280")
+    legend.text = element_text(color = "#16324f", face = "bold"),
+    plot.margin = margin(12, 12, 12, 12)
   )
 ```
 
