@@ -19,16 +19,26 @@ library(nycflights13)
 #| cache: true
 
 storms |> 
-  distinct(year, name) |> 
-  count(year) |> 
-  ggplot(aes(x = year, y = n)) +
-  geom_line() +
-  geom_point() +
+  filter(status %in% c("tropical depression", "tropical storm", "hurricane")) |> 
+  mutate(status = factor(status, levels = c("tropical depression", "tropical storm", "hurricane"))) |> 
+  distinct(year, name, status) |> 
+  count(year, status) |> 
+  ggplot(aes(x = year, y = n, fill = status)) +
+  geom_area() +
+  scale_fill_manual(
+    values = c(
+      "tropical depression" = "lightblue",
+      "tropical storm" = "orange",
+      "hurricane" = "darkred"
+    ),
+    labels = c("Tropical Depression", "Tropical Storm", "Hurricane")
+  ) +
   labs(
-    title = "Number of Named Storms per Year",
+    title = "Number of Storms per Year by Type",
     subtitle = "Data from the dplyr storms dataset",
     x = "Year",
-    y = "Number of Named Storms"
+    y = "Number of Storms",
+    fill = "Storm Type"
   )
 ```
 
